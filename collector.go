@@ -51,7 +51,8 @@ var hints = []string{
 func FromEnv() []*Scheme {
 	envs := map[string]string{}
 	for _, envStr := range os.Environ() {
-		splitted := strings.SplitN(envStr, "=", 1)
+		splitted := strings.SplitN(envStr, "=", 2)
+		log.Debugf("env: %+v", splitted)
 		envs[splitted[0]] = splitted[1]
 	}
 	return FromMap(envs)

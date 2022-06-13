@@ -1,4 +1,4 @@
-module scheme-detector
+module github.com/IMMORTALxJO/scheme-detector
 
 go 1.17
 
