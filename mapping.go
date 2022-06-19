@@ -1,4 +1,4 @@
-package main
+package schemedetector
 
 var schemesMapping = map[string][]string{
 	"ssh":        []string{"22"},

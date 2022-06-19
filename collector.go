@@ -1,4 +1,4 @@
-package main
+package schemedetector
 
 import (
 	"os"
@@ -67,7 +67,7 @@ func FromMap(input map[string]string) []*Scheme {
 		if stringInArray(k.name, procceed) {
 			continue
 		}
-		item := NewScheme()
+		item := newScheme()
 		// collect all simillar keys
 		group := k.findSimilars(keys, hints)
 		log.Debugf("parse: group='%v'", group)
@@ -80,13 +80,13 @@ func FromMap(input map[string]string) []*Scheme {
 				continue
 			}
 			log.Debugf("parse: k='%v' is URL %v", k, parsed.Hostname())
-			item.SetEngine(parsed.Scheme)
-			item.SetHost(parsed.Hostname())
-			item.SetPort(parsed.Port())
-			item.SetPath(parsed.Path)
-			item.SetUsername(parsed.User.Username())
+			item.setEngine(parsed.Scheme)
+			item.setHost(parsed.Hostname())
+			item.setPort(parsed.Port())
+			item.setPath(parsed.Path)
+			item.setUsername(parsed.User.Username())
 			if p, hasPass := parsed.User.Password(); hasPass {
-				item.SetPassword(p)
+				item.setPassword(p)
 			}
 			procceed = append(procceed, k.name)
 		}
@@ -97,23 +97,23 @@ func FromMap(input map[string]string) []*Scheme {
 				continue
 			}
 			if k.hasHints(hostHints) && (govalidator.IsDNSName(k.value) || govalidator.IsIP(k.value)) {
-				item.SetHost(k.value)
+				item.setHost(k.value)
 			}
 			if k.hasHints(portHints) && govalidator.IsNumeric(k.value) {
-				item.SetPort(k.value)
+				item.setPort(k.value)
 			}
 			if k.hasHints(userHints) {
-				item.SetUsername(k.value)
+				item.setUsername(k.value)
 			}
 			if k.hasHints(passHints) {
-				item.SetPassword(k.value)
+				item.setPassword(k.value)
 			}
 			if k.hasHints(pathHints) {
-				item.SetPath(k.value)
+				item.setPath(k.value)
 			}
 		}
-		item.Guess()
-		if item.IsFull() {
+		item.guess()
+		if item.isFull() {
 			for _, k := range group {
 				procceed = append(procceed, k.name)
 			}

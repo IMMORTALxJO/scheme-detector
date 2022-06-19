@@ -1,4 +1,4 @@
-package main
+package schemedetector
 
 func stringInArray(k string, arr []string) bool {
 	for _, a := range arr {

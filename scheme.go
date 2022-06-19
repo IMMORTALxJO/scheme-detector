@@ -1,29 +1,30 @@
-package main
+package schemedetector
 
 import (
 	"net/url"
 
+	"github.com/asaskevich/govalidator"
 	log "github.com/sirupsen/logrus"
 )
 
 type Scheme struct {
-	url      *url.URL
+	URL      *url.URL
 	port     string
 	host     string
 	username string
 	password string
 }
 
-func (s *Scheme) SetEngine(input string) {
-	if input == "" || s.url.Scheme != "" {
+func (s *Scheme) setEngine(input string) {
+	if input == "" || s.URL.Scheme != "" {
 		return
 	}
-	s.url.Scheme = input
+	s.URL.Scheme = input
 	log.Debugf("scheme: SetEngine('%s')", input)
 	s.regenerate()
 }
 
-func (s *Scheme) SetPort(input string) {
+func (s *Scheme) setPort(input string) {
 	if input == "" || s.port != "" {
 		return
 	}
@@ -32,19 +33,19 @@ func (s *Scheme) SetPort(input string) {
 	s.regenerate()
 }
 
-func (s *Scheme) SetPath(input string) {
-	if input == "" || s.url.Path != "" {
+func (s *Scheme) setPath(input string) {
+	if input == "" || s.URL.Path != "" {
 		return
 	}
-	s.url.Path = input
+	s.URL.Path = input
 	log.Debugf("scheme: SetPath('%s')", input)
 }
 
 func (s *Scheme) String() string {
-	return s.url.String()
+	return s.URL.String()
 }
 
-func (s *Scheme) SetUsername(input string) {
+func (s *Scheme) setUsername(input string) {
 	if input == "" || s.username != "" {
 		return
 	}
@@ -52,7 +53,7 @@ func (s *Scheme) SetUsername(input string) {
 	log.Debugf("scheme: SetUsername('%s')", input)
 	s.regenerate()
 }
-func (s *Scheme) SetPassword(input string) {
+func (s *Scheme) setPassword(input string) {
 	if input == "" || s.password != "" {
 		return
 	}
@@ -60,7 +61,7 @@ func (s *Scheme) SetPassword(input string) {
 	log.Debugf("scheme: SetPassword('%s')", input)
 	s.regenerate()
 }
-func (s *Scheme) SetHost(input string) {
+func (s *Scheme) setHost(input string) {
 	if input == "" || s.host != "" {
 		return
 	}
@@ -74,40 +75,48 @@ func (s *Scheme) regenerate() {
 	if host != "" && s.port != "" {
 		host = host + ":" + s.port
 	}
-	s.url.Host = host
-	log.Debugf("scheme:reg host='%s'", s.url.Host)
+	s.URL.Host = host
+	log.Debugf("scheme:reg host='%s'", s.URL.Host)
 	if s.username != "" {
 		if s.password == "" {
-			s.url.User = url.User(s.username)
+			s.URL.User = url.User(s.username)
 		} else {
-			s.url.User = url.UserPassword(s.username, s.password)
+			s.URL.User = url.UserPassword(s.username, s.password)
 		}
 	}
-	log.Debugf("scheme:reg user='%s'", s.url.User.String())
+	log.Debugf("scheme:reg user='%s'", s.URL.User.String())
 }
 
-func (s *Scheme) Guess() {
-	if s.url.Port() == "" && s.url.Scheme != "" {
-		port := getPortFromScheme(s.url.Scheme)
+func (s *Scheme) guess() {
+	if s.URL.Port() == "" && s.URL.Scheme != "" {
+		port := getPortFromScheme(s.URL.Scheme)
 		if port != "" {
 			s.port = port
 		}
 	}
-	if s.url.Port() != "" && s.url.Scheme == "" {
-		scheme := getSchemeFromPort(s.url.Port())
+	if s.URL.Port() != "" && s.URL.Scheme == "" {
+		scheme := getSchemeFromPort(s.URL.Port())
 		if scheme != "" {
-			s.url.Scheme = scheme
+			s.URL.Scheme = scheme
 		}
 	}
 	s.regenerate()
 }
 
-func (s *Scheme) IsFull() bool {
-	return s.url.Scheme != "" && s.port != "" && s.host != ""
+func (s *Scheme) isFull() bool {
+	return s.URL.Scheme != "" && s.port != "" && s.host != ""
 }
 
-func NewScheme() *Scheme {
+func (s *Scheme) IsIP() bool {
+	return s.host != "" && govalidator.IsIP(s.host)
+}
+
+func (s *Scheme) IsDNSName() bool {
+	return s.host != "" && govalidator.IsDNSName(s.host)
+}
+
+func newScheme() *Scheme {
 	return &Scheme{
-		url: &url.URL{},
+		URL: &url.URL{},
 	}
 }
