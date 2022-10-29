@@ -8,46 +8,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var hostHints = []string{
-	"host",
-	"hostname",
-	"address",
-	"endpoint",
-}
-var pathHints = []string{
-	"path",
-	"name",
-	"db",
-}
-var passHints = []string{
-	"pass",
-	"password",
-	"pwn",
-}
-var userHints = []string{
-	"user",
-	"username",
-}
-var portHints = []string{
-	"port",
-}
-
-var hints = []string{
-	"host",
-	"hostname",
-	"address",
-	"endpoint",
-	"path",
-	"name",
-	"db",
-	"pass",
-	"password",
-	"pwn",
-	"user",
-	"username",
-	"port",
-}
-
 func FromEnv() []*Scheme {
 	envs := map[string]string{}
 	for _, envStr := range os.Environ() {
@@ -69,9 +29,8 @@ func FromMap(input map[string]string) []*Scheme {
 		}
 		item := newScheme()
 		// collect all simillar keys
-		group := k.findSimilars(keys, hints)
+		group := k.findSimilars(keys)
 		log.Debugf("parse: group='%v'", group)
-		log.Debugf("parse: item='%v'", item)
 		// search for URI in keys
 		for _, k := range group {
 			parsed := k.getURL()
@@ -85,6 +44,7 @@ func FromMap(input map[string]string) []*Scheme {
 			item.setPort(parsed.Port())
 			item.setPath(parsed.Path)
 			item.setUsername(parsed.User.Username())
+			item.setArguments(parsed.RawQuery)
 			if p, hasPass := parsed.User.Password(); hasPass {
 				item.setPassword(p)
 			}
@@ -94,29 +54,27 @@ func FromMap(input map[string]string) []*Scheme {
 		for _, k := range group {
 			log.Debugf("parse:2 '%s'", k.name)
 			if stringInArray(k.name, procceed) {
+				log.Debugf("parse:2 '%s' already proceed", k.name)
 				continue
 			}
-			if k.hasHints(hostHints) && (govalidator.IsDNSName(k.value) || govalidator.IsIP(k.value)) {
+			if k.hasHints(hostHints) && govalidator.IsDNSName(k.value) || govalidator.IsIP(k.value) {
 				item.setHost(k.value)
-			}
-			if k.hasHints(portHints) && govalidator.IsNumeric(k.value) {
+			} else if k.hasHints(portHints) && govalidator.IsNumeric(k.value) {
 				item.setPort(k.value)
-			}
-			if k.hasHints(userHints) {
+			} else if k.hasHints(userHints) {
 				item.setUsername(k.value)
-			}
-			if k.hasHints(passHints) {
+			} else if k.hasHints(passHints) {
 				item.setPassword(k.value)
-			}
-			if k.hasHints(pathHints) {
+			} else if k.hasHints(pathHints) {
 				item.setPath(k.value)
 			}
 		}
-		item.guess()
+		item.guessMissed()
 		if item.isFull() {
 			for _, k := range group {
 				procceed = append(procceed, k.name)
 			}
+			log.Debugf("parse: Succeed group %v", group)
 			log.Debugf("parse: RESULT '%s'", item)
 			result = append(result, item)
 		}

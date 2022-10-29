@@ -13,6 +13,32 @@ var schemesMapping = map[string][]string{
 	"amqp":       []string{"5672"},
 }
 
+var hostHints = []string{
+	"address",
+	"uri",
+	"url",
+	"endpoint",
+	"host",
+}
+
+var pathHints = []string{
+	"path",
+	"name",
+	"db",
+}
+var passHints = []string{
+	"pass",
+	"password",
+	"pwn",
+}
+var userHints = []string{
+	"user",
+	"username",
+}
+var portHints = []string{
+	"port",
+}
+
 func getPortFromScheme(scheme string) string {
 	if v, ok := schemesMapping[scheme]; ok {
 		return v[0]
