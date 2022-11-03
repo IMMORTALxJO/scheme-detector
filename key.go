@@ -10,28 +10,61 @@ import (
 const splitChar = "_"
 
 type key struct {
-	name  string
-	value string
+	name    string
+	value   string
+	chunked []string
 }
 
 func (k *key) findSimilars(candidates []*key) []*key {
-	matches := []*key{}
-	chunkedKey := strings.Split(strings.ToLower(k.name), splitChar)
-	sliceLen := len(chunkedKey) - 1
-	if sliceLen == 0 {
-		sliceLen = 1
-	}
+	firstMatch := []*key{}
 	for _, candidate := range candidates {
-		chunkedCandidate := strings.Split(strings.ToLower(candidate.name), splitChar)
-		if len(chunkedCandidate) < len(chunkedKey) {
-			continue
-		}
-		if strings.Join(chunkedCandidate[0:sliceLen], "_") == strings.Join(chunkedKey[0:sliceLen], "_") {
-			matches = append(matches, candidate)
+		if k.isSimilar(candidate) {
+			firstMatch = append(firstMatch, candidate)
 		}
 	}
-	log.Debugf("matches: %+v", matches)
-	return matches
+	log.Debugf("firstMatch: %+v", firstMatch)
+	weights := []int{}
+	for _, candidate := range firstMatch {
+		weight := 0
+		for _, j := range firstMatch {
+			if candidate.isSimilar(j) {
+				weight = weight + 1
+			}
+		}
+		weights = append(weights, weight)
+	}
+	log.Debugf("weights: %+v", weights)
+	secondMatch := []*key{}
+	if len(firstMatch) > 2 {
+		for i, weight := range weights {
+			if weight > 2 {
+				secondMatch = append(secondMatch, firstMatch[i])
+			}
+		}
+	} else {
+		secondMatch = firstMatch
+	}
+	log.Debugf("secondMatch: %+v", secondMatch)
+	return secondMatch
+}
+
+func (k key) isSimilar(candidate *key) bool {
+	if k.name == candidate.name {
+		return true
+	}
+	chunked := k.getChunked()
+	candidateChunked := candidate.getChunked()
+	for _, chunk := range chunked {
+		if stringInArray(chunk, candidateChunked) {
+			return true
+		}
+	}
+	return false
+}
+
+func (k *key) getChunked() []string {
+	k.chunked = strings.Split(strings.ToLower(k.name), splitChar)
+	return k.chunked
 }
 
 func (k *key) String() string {
@@ -54,4 +87,12 @@ func (k *key) hasHints(hints []string) bool {
 		}
 	}
 	return false
+}
+
+func newKey(k string, v string) *key {
+	return &key{
+		k,
+		v,
+		[]string{},
+	}
 }

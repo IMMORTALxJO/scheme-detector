@@ -111,3 +111,15 @@ func TestCollectorHelpers(t *testing.T) {
 	})[0].IsIP())
 
 }
+
+func TestFilter(t *testing.T) {
+	os.Clearenv()
+	os.Setenv("SCHEME_DETECTOR_EXCLUDE", ".*PASS")
+	testDetect(t, FromMap(map[string]string{
+		"DATABASE_HOST": "127.0.0.1",
+		"DATABASE_USER": "user",
+		"DATABASE_PASS": "password",
+		"DATABASE_PORT": "5432",
+		"DATABASE_NAME": "test",
+	}), []string{"postgres://user@127.0.0.1:5432/test"})
+}

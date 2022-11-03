@@ -2,6 +2,8 @@ package schemedetector
 
 import (
 	"os"
+	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -21,7 +23,7 @@ func FromEnv() []*Scheme {
 func FromMap(input map[string]string) []*Scheme {
 	result := []*Scheme{}
 	procceed := []string{}
-	keys := mapToKeys(input)
+	keys := mapToKeys(filterMap(input))
 	for _, k := range keys {
 		log.Debugf("parse: key='%s' value='%v'", k.name, k.value)
 		if stringInArray(k.name, procceed) {
@@ -83,9 +85,30 @@ func FromMap(input map[string]string) []*Scheme {
 }
 
 func mapToKeys(input map[string]string) []*key {
+	keys := []string{}
+	for k := range input {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
 	result := []*key{}
-	for k, v := range input {
-		result = append(result, &key{k, v})
+	for _, k := range keys {
+		v := input[k]
+		result = append(result, newKey(k, v))
 	}
 	return result
+}
+
+func filterMap(input map[string]string) map[string]string {
+	excludeRegexp := os.Getenv("SCHEME_DETECTOR_EXCLUDE")
+	if excludeRegexp == "" {
+		return input
+	}
+	filter := regexp.MustCompile(excludeRegexp)
+	filtered := map[string]string{}
+	for k, v := range input {
+		if !filter.Match([]byte(k)) {
+			filtered[k] = v
+		}
+	}
+	return filtered
 }
