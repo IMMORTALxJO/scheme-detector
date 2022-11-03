@@ -106,7 +106,7 @@ func filterMap(input map[string]string) map[string]string {
 	filter := regexp.MustCompile(excludeRegexp)
 	filtered := map[string]string{}
 	for k, v := range input {
-		if !filter.Match(k) {
+		if !filter.Match([]byte(k)) {
 			filtered[k] = v
 		}
 	}
