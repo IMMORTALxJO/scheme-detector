@@ -20,9 +20,13 @@ func FromEnv() []*Scheme {
 	return FromMap(envs)
 }
 
+// skipcq: GO-R1005
 func FromMap(input map[string]string) []*Scheme {
-	result := []*Scheme{}
-	procceed := []string{}
+	var result []*Scheme
+
+	var procceed []string
+	log.SetLevel(log.DebugLevel)
+
 	keys := mapToKeys(filterMap(input))
 	for _, k := range keys {
 		log.Debugf("parse: key='%s' value='%v'", k.name, k.value)
@@ -62,7 +66,7 @@ func FromMap(input map[string]string) []*Scheme {
 			}
 			if k.hints.host && govalidator.IsDNSName(k.value) || govalidator.IsIP(k.value) {
 				item.setHost(k.value)
-			} else if k.hints.port && govalidator.IsNumeric(k.value) {
+			} else if k.hints.port && govalidator.IsPort(k.value) {
 				item.setPort(k.value)
 			} else if k.hints.user {
 				item.setUsername(k.value)
@@ -87,12 +91,14 @@ func FromMap(input map[string]string) []*Scheme {
 }
 
 func mapToKeys(input map[string]string) []*key {
-	keys := []string{}
+	var keys []string
+
 	for k := range input {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	result := []*key{}
+	var result []*key
+
 	for _, k := range keys {
 		v := input[k]
 		result = append(result, newKey(k, v))
