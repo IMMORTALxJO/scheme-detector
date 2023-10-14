@@ -23,10 +23,7 @@ func FromEnv() []*Scheme {
 // skipcq: GO-R1005
 func FromMap(input map[string]string) []*Scheme {
 	var result []*Scheme
-
 	var procceed []string
-	log.SetLevel(log.DebugLevel)
-
 	keys := mapToKeys(filterMap(input))
 	for _, k := range keys {
 		log.Debugf("parse: key='%s' value='%v'", k.name, k.value)
