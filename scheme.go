@@ -64,6 +64,7 @@ func (s *Scheme) setUsername(input string) {
 }
 func (s *Scheme) setPassword(input string) {
 	if input == "" || s.Password != "" {
+		log.Debug("scheme: SetPassword: empty input or password already set")
 		return
 	}
 	s.Password = input

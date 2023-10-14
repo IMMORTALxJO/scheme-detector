@@ -1,16 +1,16 @@
 package schemedetector
 
 var schemesMapping = map[string][]string{
-	"ssh":        []string{"22"},
-	"http":       []string{"80", "8080"},
-	"https":      []string{"443"},
-	"mysql":      []string{"3306"},
-	"postgres":   []string{"5432", "6432"},
-	"memcached":  []string{"11211"},
-	"redis":      []string{"6379"},
-	"prometheus": []string{"9090"},
-	"kafka":      []string{"9092"},
-	"amqp":       []string{"5672"},
+	"ssh":        {"22"},
+	"http":       {"80", "8080"},
+	"https":      {"443"},
+	"mysql":      {"3306"},
+	"pgsql":      {"5432", "6432"},
+	"memcached":  {"11211"},
+	"redis":      {"6379"},
+	"prometheus": {"9090"},
+	"kafka":      {"9092"},
+	"amqp":       {"5672"},
 }
 
 var hostHints = []string{

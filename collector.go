@@ -35,7 +35,7 @@ func FromMap(input map[string]string) []*Scheme {
 		log.Debugf("parse: group='%v'", group)
 		// search for URI in keys
 		for _, k := range group {
-			parsed := k.getURL()
+			parsed := k.uri
 			if parsed == nil {
 				log.Debugf("parse: k='%v' is not URL", k)
 				continue
@@ -50,6 +50,7 @@ func FromMap(input map[string]string) []*Scheme {
 			if p, hasPass := parsed.User.Password(); hasPass {
 				item.setPassword(p)
 			}
+			log.Debugf("procceed+='%s'", k.name)
 			procceed = append(procceed, k.name)
 		}
 		// search parameters in other keys
@@ -59,21 +60,22 @@ func FromMap(input map[string]string) []*Scheme {
 				log.Debugf("parse:2 '%s' already proceed", k.name)
 				continue
 			}
-			if k.hasHints(hostHints) && govalidator.IsDNSName(k.value) || govalidator.IsIP(k.value) {
+			if k.hints.host && govalidator.IsDNSName(k.value) || govalidator.IsIP(k.value) {
 				item.setHost(k.value)
-			} else if k.hasHints(portHints) && govalidator.IsNumeric(k.value) {
+			} else if k.hints.port && govalidator.IsNumeric(k.value) {
 				item.setPort(k.value)
-			} else if k.hasHints(userHints) {
+			} else if k.hints.user {
 				item.setUsername(k.value)
-			} else if k.hasHints(passHints) {
+			} else if k.hints.pass {
 				item.setPassword(k.value)
-			} else if k.hasHints(pathHints) {
+			} else if k.hints.path {
 				item.setPath(k.value)
 			}
 		}
 		item.guessMissed()
 		if item.isFull() {
 			for _, k := range group {
+				log.Debugf("procceed+='%s'", k.name)
 				procceed = append(procceed, k.name)
 			}
 			log.Debugf("parse: Succeed group %v", group)

@@ -13,39 +13,29 @@ func TestKeyString(t *testing.T) {
 	assert.Equal(t, (newKey("", "")).String(), "")
 }
 
+func TestKeyNew(t *testing.T) {
+	assert.Check(t, (newKey("test", "")).uri == nil)
+	// test correct uri parsing
+	assert.Check(t, (newKey("test", "http://user:pass@localhost:8080/testpath")).uri != nil)
+	assert.Equal(t, (newKey("test", "http://user:pass@localhost:8080/testpath")).uri.Hostname(), "localhost")
+	assert.Equal(t, (newKey("test", "http://user:pass@localhost:8080/testpath")).uri.Port(), "8080")
+	assert.Equal(t, (newKey("test", "http://user:pass@localhost:8080/testpath")).uri.Path, "/testpath")
+	assert.Equal(t, (newKey("test", "http://user:pass@localhost:8080/testpath")).uri.User.Username(), "user")
+	// test hints detection
+	assert.Check(t, (newKey("TEST_HOST", "")).hints.host)
+	assert.Check(t, (newKey("TEST_PATH", "")).hints.path)
+	assert.Check(t, (newKey("TEST_PORT", "")).hints.port)
+	assert.Check(t, (newKey("TEST_USER", "")).hints.user)
+	assert.Check(t, (newKey("TEST_PASS", "")).hints.pass)
+}
+
 func TestKeyFindSimilars(t *testing.T) {
-	checkFindSimilars(t, newKey("A_B", ""),
-		[]string{"A_B"},
-		[]string{"A_B"},
+
+	checkFindSimilars(t, newKey("DATABASE_MAIN_HOST", ""),
+		[]string{"DATABASE_MAIN_NAME", "DATABASE_MAIN_PASSWORD", "DATABASE_MAIN_PORT", "DATABASE_MAIN_SCHEMA", "DATABASE_MAIN_USERNAME", "DATABASE_REPLICA_URL", "DATABASE_SECOND_HOST", "DATABASE_SECOND_PASSWORD", "DATABASE_SECOND_PORT", "DATABASE_SECOND_SCHEMA", "DATABASE_SECOND_USERNAME", "RABBIT_MQ_HOST"},
+		[]string{"DATABASE_MAIN_NAME", "DATABASE_MAIN_PASSWORD", "DATABASE_MAIN_PORT", "DATABASE_MAIN_USERNAME"},
 	)
-	checkFindSimilars(t, newKey("A_B", ""),
-		[]string{"A_C", "A_D", "A_E"},
-		[]string{"A_C", "A_D", "A_E"},
-	)
-	checkFindSimilars(t, newKey("A_B", ""),
-		[]string{"A_C", "A_D", "A_E", "C_D", "A", "B"},
-		[]string{"A_C", "A_D", "A_E", "A"},
-	)
-	checkFindSimilars(t, newKey("A_B", ""),
-		[]string{"A_C", "A_D", "A_E", "A_B_C", "C_D", "A", "B"},
-		[]string{"A_C", "A_D", "A_E", "A_B_C", "A"},
-	)
-	checkFindSimilars(t, newKey("A", ""),
-		[]string{"A_B", "A_C", "C_A_B", "C_B"},
-		[]string{"A_B", "A_C", "C_A_B"},
-	)
-	checkFindSimilars(t, newKey("A_B_C", ""),
-		[]string{"A_B_D", "A_B_E", "A_D_E"},
-		[]string{"A_B_D", "A_B_E", "A_D_E"},
-	)
-	checkFindSimilars(t, newKey("A", ""),
-		[]string{"B", "C"},
-		nil,
-	)
-	checkFindSimilars(t, newKey("A_B_C", ""),
-		[]string{"D_E_F", "G_H_I"},
-		nil,
-	)
+
 }
 
 func checkFindSimilars(t *testing.T, k *key, c []string, answer []string) {

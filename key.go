@@ -13,86 +13,89 @@ type key struct {
 	name    string
 	value   string
 	chunked []string
+	masked  string
+	uri     *url.URL
+	hints   *keyHints
+}
+
+type keyHints struct {
+	host bool
+	path bool
+	port bool
+	user bool
+	pass bool
 }
 
 func (k *key) findSimilars(candidates []*key) []*key {
-	firstMatch := []*key{}
+	result := []*key{}
 	for _, candidate := range candidates {
-		if k.isSimilar(candidate) {
-			firstMatch = append(firstMatch, candidate)
+		log.Debugf("findSimilars: candidate.masked == k.masked, %s == %s", candidate.masked, k.masked)
+		if candidate.masked == k.masked {
+			result = append(result, candidate)
 		}
 	}
-	log.Debugf("firstMatch: %+v", firstMatch)
-	weights := []int{}
-	for _, candidate := range firstMatch {
-		weight := 0
-		for _, j := range firstMatch {
-			if candidate.isSimilar(j) {
-				weight = weight + 1
-			}
-		}
-		weights = append(weights, weight)
-	}
-	log.Debugf("weights: %+v", weights)
-	secondMatch := []*key{}
-	if len(firstMatch) > 2 {
-		for i, weight := range weights {
-			if weight > 2 {
-				secondMatch = append(secondMatch, firstMatch[i])
-			}
-		}
-	} else {
-		secondMatch = firstMatch
-	}
-	log.Debugf("secondMatch: %+v", secondMatch)
-	return secondMatch
+	return result
 }
 
-func (k key) isSimilar(candidate *key) bool {
-	if k.name == candidate.name {
-		return true
+func newKey(k string, v string) *key {
+	// check if value is URL
+	uri, err := url.Parse(v)
+	if err != nil || uri.Host == "" {
+		uri = nil
 	}
-	chunked := k.getChunked()
-	candidateChunked := candidate.getChunked()
+	// split key by splitChar
+	chunked := strings.Split(strings.ToLower(k), splitChar)
+	hostHinted := false
+	portHinted := false
+	userHinted := false
+	passHinted := false
+	pathHinted := false
+	log.SetLevel(log.DebugLevel)
+
+	// mask all hints
+	masked := []string{}
 	for _, chunk := range chunked {
-		if stringInArray(chunk, candidateChunked) {
-			return true
+		mask := false
+		if stringInArray(chunk, hostHints) {
+			mask = true
+			hostHinted = true
+		} else if stringInArray(chunk, portHints) {
+			mask = true
+			portHinted = true
+		} else if stringInArray(chunk, userHints) {
+			mask = true
+			userHinted = true
+		} else if stringInArray(chunk, passHints) {
+			mask = true
+			passHinted = true
+		} else if stringInArray(chunk, pathHints) {
+			mask = true
+			pathHinted = true
+		}
+		log.Debugf("mask: %v", mask)
+		if mask {
+			masked = append(masked, "XXX")
+		} else {
+			masked = append(masked, chunk)
 		}
 	}
-	return false
-}
 
-func (k *key) getChunked() []string {
-	k.chunked = strings.Split(strings.ToLower(k.name), splitChar)
-	return k.chunked
+	return &key{
+		name:    k,
+		value:   v,
+		chunked: chunked,
+		masked:  strings.Join(masked, splitChar),
+		uri:     uri,
+		hints: &keyHints{
+			host: hostHinted,
+			path: pathHinted,
+			port: portHinted,
+			user: userHinted,
+			pass: passHinted,
+		},
+	}
 }
 
 func (k *key) String() string {
 	return k.name
-}
-
-func (k *key) getURL() *url.URL {
-	parsed, err := url.Parse(k.value)
-	if err != nil || parsed.Host == "" {
-		return nil
-	}
-	return parsed
-}
-
-func (k *key) hasHints(hints []string) bool {
-	chunkedKey := strings.Split(strings.ToLower(k.name), splitChar)
-	for _, hint := range hints {
-		if stringInArray(hint, chunkedKey) {
-			return true
-		}
-	}
-	return false
-}
-
-func newKey(k string, v string) *key {
-	return &key{
-		k,
-		v,
-		[]string{},
-	}
 }
