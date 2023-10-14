@@ -9,6 +9,10 @@ import (
 )
 
 func testDetect(t *testing.T, result []*Scheme, answers []string) {
+	if answers == nil {
+		assert.Check(t, result == nil)
+		return
+	}
 	var resultStrings []string
 
 	for _, r := range result {
@@ -68,11 +72,11 @@ func TestCollectorMap(t *testing.T) {
 		"DATABASE_PASS": "password",
 		"DATABASE_PORT": "0",
 		"DATABASE_NAME": "test",
-	}), []string{})
+	}), nil)
 	// Unknown schema => unknown port => no result
 	testDetect(t, FromMap(map[string]string{
 		"ENDPOINT_URL": "unknown://127.0.0.1/test",
-	}), []string{})
+	}), nil)
 
 	// Overwrite is not allowed
 	testDetect(t, FromMap(map[string]string{
@@ -83,13 +87,12 @@ func TestCollectorMap(t *testing.T) {
 		"DB_USER":    "custom",
 		"DB_PASS":    "newpassword",
 	}), []string{"pgsql://user:password@127.0.0.1:5432/test"})
-
 }
 
 func TestCollectorFromEnv(t *testing.T) {
 	os.Clearenv()
-	os.Setenv("API_URL", "https://postman:password@postman-echo.com/basic-auth")
-	os.Setenv("DB_ENDPOINT", "pgsql://user@127.0.0.1:5432/test?option1=value1&option2=value2")
+	t.Setenv("API_URL", "https://postman:password@postman-echo.com/basic-auth")
+	t.Setenv("DB_ENDPOINT", "pgsql://user@127.0.0.1:5432/test?option1=value1&option2=value2")
 	testDetect(t, FromEnv(), []string{
 		"https://postman:password@postman-echo.com:443/basic-auth",
 		"pgsql://user@127.0.0.1:5432/test?option1=value1&option2=value2",
@@ -98,6 +101,7 @@ func TestCollectorFromEnv(t *testing.T) {
 }
 
 func TestCollectorHelpers(t *testing.T) {
+	os.Clearenv()
 	assert.Check(t, FromMap(map[string]string{
 		"DB": "pgsql://user@127.0.0.1:5432/test",
 	})[0].IsIP())
@@ -146,7 +150,7 @@ func TestComplicated(t *testing.T) {
 
 func TestFilter(t *testing.T) {
 	os.Clearenv()
-	os.Setenv("SCHEME_DETECTOR_EXCLUDE", ".*PASS")
+	t.Setenv("SCHEME_DETECTOR_EXCLUDE", ".*PASS")
 	testDetect(t, FromMap(map[string]string{
 		"DATABASE_HOST": "127.0.0.1",
 		"DATABASE_USER": "user",

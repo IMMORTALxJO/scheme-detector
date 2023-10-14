@@ -24,6 +24,7 @@ func FromMap(input map[string]string) []*Scheme {
 	var result []*Scheme
 
 	var procceed []string
+	log.SetLevel(log.DebugLevel)
 
 	keys := mapToKeys(filterMap(input))
 	for _, k := range keys {
@@ -64,7 +65,7 @@ func FromMap(input map[string]string) []*Scheme {
 			}
 			if k.hints.host && govalidator.IsDNSName(k.value) || govalidator.IsIP(k.value) {
 				item.setHost(k.value)
-			} else if k.hints.port && govalidator.IsNumeric(k.value) {
+			} else if k.hints.port && govalidator.IsPort(k.value) {
 				item.setPort(k.value)
 			} else if k.hints.user {
 				item.setUsername(k.value)
