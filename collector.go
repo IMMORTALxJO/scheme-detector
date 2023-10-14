@@ -20,6 +20,7 @@ func FromEnv() []*Scheme {
 	return FromMap(envs)
 }
 
+// skipcq: GO-R1005
 func FromMap(input map[string]string) []*Scheme {
 	var result []*Scheme
 
