@@ -9,7 +9,8 @@ import (
 )
 
 func testDetect(t *testing.T, result []*Scheme, answers []string) {
-	resultStrings := []string{}
+	var resultStrings []string
+
 	for _, r := range result {
 		resultStrings = append(resultStrings, r.String())
 	}

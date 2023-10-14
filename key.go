@@ -27,7 +27,8 @@ type keyHints struct {
 }
 
 func (k *key) findSimilars(candidates []*key) []*key {
-	result := []*key{}
+	var result []*key
+
 	for _, candidate := range candidates {
 		log.Debugf("findSimilars: candidate.masked == k.masked, %s == %s", candidate.masked, k.masked)
 		if candidate.masked == k.masked {
@@ -53,7 +54,8 @@ func newKey(k string, v string) *key {
 	log.SetLevel(log.DebugLevel)
 
 	// mask all hints
-	masked := []string{}
+	var masked []string
+
 	for _, chunk := range chunked {
 		mask := false
 		if stringInArray(chunk, hostHints) {
