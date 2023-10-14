@@ -39,7 +39,8 @@ func TestKeyFindSimilars(t *testing.T) {
 }
 
 func checkFindSimilars(t *testing.T, k *key, c []string, answer []string) {
-	candidates := []*key{}
+	var candidates []*key
+
 	for _, candidate := range c {
 		candidates = append(candidates, newKey(candidate, ""))
 	}

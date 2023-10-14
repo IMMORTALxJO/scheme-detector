@@ -3,8 +3,6 @@ package schemedetector
 import (
 	"net/url"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const splitChar = "_"
@@ -27,9 +25,8 @@ type keyHints struct {
 }
 
 func (k *key) findSimilars(candidates []*key) []*key {
-	result := []*key{}
+	var result []*key
 	for _, candidate := range candidates {
-		log.Debugf("findSimilars: candidate.masked == k.masked, %s == %s", candidate.masked, k.masked)
 		if candidate.masked == k.masked {
 			result = append(result, candidate)
 		}
@@ -45,15 +42,14 @@ func newKey(k string, v string) *key {
 	}
 	// split key by splitChar
 	chunked := strings.Split(strings.ToLower(k), splitChar)
+
+	// mask all hints
 	hostHinted := false
 	portHinted := false
 	userHinted := false
 	passHinted := false
 	pathHinted := false
-	log.SetLevel(log.DebugLevel)
-
-	// mask all hints
-	masked := []string{}
+	var masked []string
 	for _, chunk := range chunked {
 		mask := false
 		if stringInArray(chunk, hostHints) {
@@ -72,7 +68,6 @@ func newKey(k string, v string) *key {
 			mask = true
 			pathHinted = true
 		}
-		log.Debugf("mask: %v", mask)
 		if mask {
 			masked = append(masked, "XXX")
 		} else {
